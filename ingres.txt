@@ -1,0 +1,28 @@
+Install NGINX Ingress Controller
+
+Expose frontend via Ingress
+
+Test using curl + PORTS
+
+No Helm, no cloud LB — sandbox-compatible.
+
+1️⃣ Install NGINX Ingress Controller (KillerCoda-safe)
+
+Run this exact command:
+
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+
+
+This version is designed for local/kind/KillerCoda.
+
+Wait until ready:
+
+kubectl wait --namespace ingress-nginx \
+  --for=condition=ready pod \
+  --selector=app.kubernetes.io/component=controller \
+  --timeout=120s
+
+
+Verify:
+
+kubectl get pods -n ingress-nginx
