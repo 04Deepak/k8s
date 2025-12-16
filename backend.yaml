@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: treak-backend
+  namespace: treak
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: treak-backend
+  template:
+    metadata:
+      labels:
+        app: treak-backend
+    spec:
+      containers:
+        - name: backend
+          image: 21deepak/treak-backend:latest
+          ports:
+            - containerPort: 9090
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: treak-backend-svc
+  namespace: treak
+spec:
+  type: ClusterIP
+  selector:
+    app: treak-backend
+  ports:
+    - port: 9090
+      targetPort: 9090

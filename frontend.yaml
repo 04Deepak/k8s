@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: treak-frontend
+  namespace: treak
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: treak-frontend
+  template:
+    metadata:
+      labels:
+        app: treak-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: 21deepak/gadvede-frontend:latest
+          ports:
+            - containerPort: 80
+          env:
+            - name: BACKEND_URL
+              value: "http://treak-backend-svc:9090"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: treak-frontend-svc
+  namespace: treak
+spec:
+  type: ClusterIP
+  selector:
+    app: treak-frontend
+  ports:
+    - port: 80
+      targetPort: 80
