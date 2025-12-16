@@ -41,3 +41,146 @@ curl -H "Host: treak.local" http://127.0.0.1:8080
 
 Backend via Ingress
 curl -H "Host: treak.local" http://127.0.0.1:8080/api
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+host.conf    hostname     hosts        hosts.allow  hosts.deny   
+controlplane:~/filesystem/etc$ vi hosts
+controlplane:~/filesystem/etc$ cd ..
+controlplane:~/filesystem$ ls
+bin                boot  etc   ks   lib.usr-is-merged  lost+found  mnt  proc  run   sbin.usr-is-merged  swapfile  tmp  var
+bin.usr-is-merged  dev   home  lib  lib64              media       opt  root  sbin  srv                 sys       usr
+controlplane:~/filesystem$ cd home/
+controlplane:~/filesystem/home$ cd ubuntu/
+controlplane:~/filesystem/home/ubuntu$ cd k8s/
+controlplane:~/filesystem/home/ubuntu/k8s$ ls
+backend.yaml  frontend.yaml  ingress.yml  namespace.yml
+controlplane:~/filesystem/home/ubuntu/k8s$ cat backend.yaml 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: treak-backend
+  namespace: treak
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: treak-backend
+  template:
+    metadata:
+      labels:
+        app: treak-backend
+    spec:
+      containers:
+        - name: backend
+          image: 21deepak/treak-backend:latest
+          ports:
+            - containerPort: 9090
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: treak-backend-svc
+  namespace: treak
+spec:
+  type: ClusterIP
+  selector:
+    app: treak-backend
+  ports:
+    - port: 9090
+      targetPort: 9090
+controlplane:~/filesystem/home/ubuntu/k8s$ cat frontend.yaml 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: treak-frontend
+  namespace: treak
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: treak-frontend
+  template:
+    metadata:
+      labels:
+        app: treak-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: 21deepak/gadvede-frontend:latest
+          ports:
+            - containerPort: 80
+          env:
+            - name: BACKEND_URL
+              value: "http://treak-backend-svc:9090"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: treak-frontend-svc
+  namespace: treak
+spec:
+  type: ClusterIP
+  selector:
+    app: treak-frontend
+  ports:
+    - port: 80
+      targetPort: 80
+controlplane:~/filesystem/home/ubuntu/k8s$ cat ingress.yml 
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: treak-ingress
+  namespace: treak
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: treak.com
+      http:
+        paths:
+          # Backend → http://treak.com/api
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: treak-backend-svc
+                port:
+                  number: 9090
+
+          # Frontend → http://treak.com
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: treak-frontend-svc
+                port:
+                  number: 80
+
+controlplane:~/filesystem/home/ubuntu/k8s$ cat namespace.yml 
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: treak
+  labels:
+    app: treak
+
+controlplane:~/filesystem/home/ubuntu/k8s$ ls
+backend.yaml  frontend.yaml  ingress.yml  namespace.yml
+controlplane:~/filesystem/home/ubuntu/k8s$     
