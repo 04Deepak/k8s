@@ -26,3 +26,18 @@ kubectl wait --namespace ingress-nginx \
 Verify:
 
 kubectl get pods -n ingress-nginx
+
+
+
+4️⃣ Port-forward Ingress Controller (KillerCoda)
+kubectl port-forward -n ingress-nginx svc/ingress-nginx-controller 8080:80
+
+
+Leave this running.
+
+5️⃣ Test (VERY IMPORTANT)
+Frontend
+curl -H "Host: treak.local" http://127.0.0.1:8080
+
+Backend via Ingress
+curl -H "Host: treak.local" http://127.0.0.1:8080/api
